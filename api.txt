@@ -1,0 +1,36 @@
+建立帳號
+http://bm.vir999.com/app/WebService/JSON/display.php/CreateMember?
+website=EsBall&username=Annyke&uppername=dnnatest1&key=009c321c3ee7a9bfa8fe60dccabeaee9400000000
+
+key 
+A:00
+B:EsBallAnnyke0XqEuzqsPx20160824   
+=> 加密9c321c3ee7a9bfa8fe60dccabeaee940
+C:0000000
+
+會員登入
+
+http://bm.vir999.com/app/WebService/JSON/display.php/Login2?
+website=EsBall&username=Annyke&uppername=dnnatest1&key=9447017922ba2609079de53a2c1e04c531111111
+
+key
+A:0
+B:EsBallAnnyke9L7Bg420160824
+=>9c321c447017922ba2609079de53a2c1e04c53
+
+
+存入額度
+http://bm.vir999.com/app/WebService/JSON/display.php/Transfer?
+website=EsBall&username=Annyke&uppername=dnnatest1&remitno=1999999999&action=IN&remit=5000&key=11111b80e0fe1dfe40eb4f574690d9555dc9b00
+
+remitno = 1999999999
+B:EsBallAnnyke19999999997rRGfi1b20160824
+=>b80e0fe1dfe40eb4f574690d9555dc9b
+
+
+登入遊戲
+http://bm.vir999.com/app/WebService/JSON/display.php/PlayGame?
+website=EsBall&username=Annyke&gametype=5063&key=333232291b80a797bb4d4bb773f7c2e1aab1
+
+B:EsBallAnnykeYJ97c0d220160824
+=>232291b80a797bb4d4bb773f7c2e1aab
