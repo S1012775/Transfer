@@ -13,7 +13,7 @@ $user = $_GET['user'];
 $type = $_GET['type'];
 $transId = $_GET['transid'];
 $amount = $_GET['amount'];
-
+$number = "/^([0-9]+)$/";
 $connect = new Connect;
 
 if ($api == "addUser" && isset($user) && $user != NULL) {
@@ -58,7 +58,7 @@ if ($api == "getBalance" && isset($user)) {
 
 }
 
-if ($api == "Transfer" && $user != "" && $type != "" && $transId != "" && $amount != "" && $amount >= 0) {
+if ($api == "Transfer" && $user != "" && $type != "" && $transId != "" && $amount != "" && $amount >= 0 && preg_match($number, $amount)) {
     $sql = "SELECT * FROM `member` WHERE `user` = :user";
     $result = $connect->db->prepare($sql);
     $result->bindParam(':user',$user);
