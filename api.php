@@ -87,10 +87,9 @@ if ($api == "Transfer" && $user != "" && $type != "" && $transId != "" && $amoun
             if($type =="IN") {
             $total =  $dbBalance + $amount;
             }
-
             if($type =="OUT") {
-            $total =  $dbBalance - $amount;
-                if ($dbTransId < $amount) {
+                $total =  $dbBalance - $amount;
+                if ($dbBalance < $amount) {
                     $info = array("Massage" => "You have no enough money ");
                     exit(json_encode($info));
                 }
