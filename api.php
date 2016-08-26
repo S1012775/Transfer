@@ -16,78 +16,85 @@ $amount = $_GET['amount'];
 
 $connect = new Connect;
 
-$sql = "SELECT * FROM `member`";
-$result = $connect->db->prepare($sql);
-$result->execute();
-$row = $result->fetchAll(PDO::FETCH_ASSOC);
-foreach($row as $value) {
-    $dbUser = $value['user'];
-    $dbBalance = $value['balance'];
-}
+if ($api == "addUser" && isset($user) && $user != NULL) {
 
-$sql = "SELECT * FROM `detial`";
-$result = $connect->db->prepare($sql);
-$result->execute();
-$row = $result->fetchAll(PDO::FETCH_ASSOC);
-foreach($row as $value) {
-    $dbTransId = $value['transid'];
-}
+    $sql = "SELECT * FROM `member` WHERE `user` = :user";
+    $result = $connect->db->prepare($sql);
+    $result->bindParam(':user',$user);
+    $result->execute();
+    $memberRow = $result->fetchAll(PDO::FETCH_ASSOC);
+    $dbUser = $memberRow[0]['user'];
 
-if ($api == "addUser" && isset($_GET['user'])) {
-    if ($dbUser == $user) {
-        $info = array("massage" => "User are already exist");
-        exit(json_encode($info));
-    }
-    else {
-        $sql = "INSERT INTO `member`(`name`, `balance`) VALUES (:user, '10000')";
+    if ($dbUser == NULL) {
+        $sql = "INSERT INTO `member`(`user`, `balance`) VALUES (:user, '10000')";
         $result = $connect->db->prepare($sql);
         $result->bindParam(':user',$user);
         $result->execute();
 
         $info = array("name" => "$user", "Massage" => "Successful");
         exit(json_encode($info));
+    } else {
+        $info = array("massage" => "User are already exist");
+        exit(json_encode($info));
     }
 }
 
-if ($api == "getBalance" && isset($_GET['user'])) {
+if ($api == "getBalance" && isset($user)) {
+    $sql = "SELECT * FROM `member` WHERE `user` = :user";
+    $result = $connect->db->prepare($sql);
+    $result->bindParam(':user', $user);
+    $result->execute();
+    $memberRow = $result->fetchAll(PDO::FETCH_ASSOC);
+    $dbUser = $memberRow[0]['user'];
+
+    if ($user == $dbUser) {
+        $dbBalance = $memberRow[0]['balance'];
+        $info = array( "Result" => "True", "Balance" => "$dbBalance");
+        exit(json_encode($info));
+    } else {
+        $info = array("Massage" => "No user");
+        exit(json_encode($info));
+    }
+
+}
+
+if ($api == "Transfer" && $user != "" && $type != "" && $transId != "" && $amount != "" && $amount >= 0) {
+    $sql = "SELECT * FROM `member` WHERE `user` = :user";
+    $result = $connect->db->prepare($sql);
+    $result->bindParam(':user',$user);
+    $result->execute();
+    $memberRow = $result->fetchAll(PDO::FETCH_ASSOC);
+    $dbUser = $memberRow[0]['user'];
+    $dbBalance = $memberRow[0]['balance'];
+
+    $sql = "SELECT * FROM `detial` WHERE `user` = :user ORDER BY `id` DESC";
+    $result = $connect->db->prepare($sql);
+    $result->bindParam(':user',$user);
+    $result->execute();
+    $detialRow = $result->fetchAll(PDO::FETCH_ASSOC);
+    $dbTransId = $detialRow[0]['transid'];
 
     if ($dbUser != $user) {
         $info = array("Massage" => "No user");
         exit(json_encode($info));
     }
-    else {
-        $sql = "SELECT * FROM `member` WHERE `name` = :user";
-        $result = $connect->db->prepare($sql);
-        $result->bindParam(':user', $user);
-        $result->execute();
-        $row = $result->fetch();
-        $dbBalance = $row['balance'];
-
-        $info = array( "Result" => "True", "Balance" => "$dbBalance");
+    if ($transId == $dbTransId){
+        $info = array("Massage" => "transId are already exist");
         exit(json_encode($info));
     }
-}
-
-if ($api == "Transfer" && isset($_GET['user']) && $_GET['type'] && $_GET['transid'] && $_GET['amount']) {
-
-        if ($dbUser != $user) {
-            $info = array("Massage" => "No user");
-            exit(json_encode($info));
-        }
-
-        if ($transId == $dbTransId){
-            $info = array("Massage" => "transId are already exist");
-            exit(json_encode($info));
-        }
-        else {
+     else {
+        if($type == "IN" or $type == "OUT") {
             if($type =="IN") {
-                $total =  $dbBalance + $amount;
+            $total =  $dbBalance + $amount;
             }
 
             if($type =="OUT") {
-                $total =  $dbBalance - $amount;
+            $total =  $dbBalance - $amount;
+                if ($dbTransId < $amount) {
+                    $info = array("Massage" => "You have no enough money ");
+                    exit(json_encode($info));
+                }
             }
-
             $sql = "INSERT INTO `detial`(`user`, `transid`, `amount`, `balance`) VALUES (:user, :transId, :amount,:total)";
             $result = $connect->db->prepare($sql);
             $result->bindParam(':user', $user);
@@ -98,34 +105,38 @@ if ($api == "Transfer" && isset($_GET['user']) && $_GET['type'] && $_GET['transi
             $row = $result->fetch();
             $balance = $row['balance'];
 
-            $sql = "UPDATE `member` SET `balance`= :total WHERE `name` = :user";
+            $sql = "UPDATE `member` SET `balance`= :total WHERE `user` = :user";
             $updata = $connect->db->prepare($sql);
             $updata->bindParam(':user', $user);
             $updata->bindParam(':total', $total);
             $updata->execute();
 
             $info = array( "Balance" => "$total", "Message" => "Successful");
-
             exit(json_encode($info));
+        } else {
+            $user_info = array("message" => "Type error!");
+            exit(json_encode($user_info));
         }
+    }
 }
 
-if ($api == "transferCheck" && isset($_GET['user']) && $_GET['transid']) {
+if ($api == "transferCheck" && $user != "" && $transId != "") {
     $sql = "SELECT * FROM `detial` WHERE `user` = :user AND `transid` = :transId";
     $result = $connect->db->prepare($sql);
     $result->bindParam(':user', $user);
     $result->bindParam(':transId', $transId);
     $result->execute();
-    $row = $result->fetchAll(PDO::FETCH_ASSOC);
-    foreach($row as $value) {
-        $TransId = $value['transid'];
-    }
-    if ($transId == $TransId ) {
+    $checkRow = $result->fetchAll(PDO::FETCH_ASSOC);
+    $transIdRow = $checkRow[0]['transid'];
+    if ($transId == $transIdRow ) {
         $info = array("Massage" => "Successful");
         exit(json_encode($info));
-    } else {
+    }else {
         $info = array("massage" => "Not Found Transaction!");
         exit(json_encode($info));
     }
-
 }
+
+$info = array("massage" => "Input error!");
+
+exit(json_encode($info));
